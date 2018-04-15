@@ -1,22 +1,22 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 import Text.Show.Functions -- Para mostrar <Function> en consola cada vez que devuelven una
-import Data.List -- Para métodos de colecciones que no vienen por defecto (ver guía de lenguajes)
-import Data.Maybe -- Por si llegan a usar un método de colección que devuelva “Just suElemento” o “Nothing”.
+import Data.List -- Para mÃ©todos de colecciones que no vienen por defecto (ver guÃ­a de lenguajes)
+import Data.Maybe -- Por si llegan a usar un mÃ©todo de colecciÃ³n que devuelva â€œJust suElementoâ€ o â€œNothingâ€.
 import Test.Hspec 
 
 
 
 -- Para simplificar las cosas, armamos la data Evento que contiene nombre y billetera para usar con los eventos
--- y con los usuarios. De yapa está el campo Evento que tiene el nombre del Evento ocurrido. 
+-- y con los usuarios. De yapa estÃ¡ el campo Evento que tiene el nombre del Evento ocurrido. 
 
 data User = User {
      nombre :: String,
      billetera :: Float,
-     evento :: String -- evento devolverán el nombre del Evento
+     evento :: String -- evento devolverÃ¡n el nombre del Evento
 } deriving (Show, Eq)
 
 
--- Definimos el tipo Evento, y las funciones devolverán Eventos con estructura User
+-- Definimos el tipo Evento, y las funciones devolverÃ¡n Eventos con estructura User
 type Evento = User
 deposito :: Float -> User -> Evento
 upgrade :: User -> Evento
@@ -30,7 +30,7 @@ ahorranteErrante :: User -> Evento
 
 
 
--- Vamos a crear billeteras acorde a los testeos que se pide, para evitar poner tanto código.
+-- Vamos a crear billeteras acorde a los testeos que se pide, para evitar poner tanto cÃ³digo.
 
 billeteraDiez = User {nombre = "Test", billetera = 10, evento = "Testeo"} -- Para testear
 billeteraVeinte = User {nombre = "Test", billetera = 20, evento = "Testeo"} -- Para testear
@@ -40,8 +40,8 @@ billeteraCincuenta = User {nombre = "Test", billetera = 50, evento = "Testeo"} -
 
 {-
 Eventos.
-A continuación creamos funciones que devuelvan un tipo Evento. Se decidio que 
-la información relevante es: billetera y nombre del evento que se aplica.
+A continuaciÃ³n creamos funciones que devuelvan un tipo Evento. Se decidio devolver
+toda la informaciÃ³n del usuario, luego de aplicar el evento.
 -}
 
 deposito numero usuario | numero >= 0 = usuario {billetera = billetera(usuario)+numero, evento = "Deposito"}
@@ -65,8 +65,8 @@ ahorranteErrante usuario = usuario {billetera = ((((billetera.deposito 10).(upgr
 
 
 {-
-Enlistamos los usuarios que se utilizarán en la etapa de testeo,
-como así también algunos extras para tener más casos de prueba.
+Enlistamos los usuarios que se utilizarÃ¡n en la etapa de testeo,
+como asÃ­ tambiÃ©n algunos extras para tener mÃ¡s casos de prueba.
 -}
 
 pepe = User {nombre = "Jose", billetera = 10, evento = "Soy Usuario"}
@@ -85,7 +85,7 @@ sunday = User {nombre = "Sunday", billetera = 123, evento = "Soy Usuario"}
 
 
 {-
-Creamos las transacciones, delegando la acción correspondiente a 
+Creamos las transacciones, delegando la acciÃ³n correspondiente a 
 los eventos definidos anteriormente.
 -}
 
@@ -101,13 +101,13 @@ transaccionTres usuario | nombre(usuario) == "Luciano" = tocoYMeVoy
 transaccionCuatro usuario | nombre(usuario) == "Luciano" = ahorranteErrante
                           | otherwise = quedaIgual
 
-transaccionCinco usuario | nombre(usuario) == "Jose" = extraccion 7 -- Esta función recibe un usuario, el número a depositar/extraer y el otro usuario
+transaccionCinco usuario | nombre(usuario) == "Jose" = extraccion 7 -- Esta funciÃ³n recibe un usuario, el nÃºmero a depositar/extraer y el otro usuario
                          | otherwise = deposito 7
 
 
 
 
--- Se realizan los testeos pedidos, ordenados según el TP.
+-- Se realizan los testeos pedidos, ordenados segÃºn el TP.
 
 
 test = hspec $ do
@@ -162,7 +162,7 @@ test = hspec $ do
      describe "Testeo 17. Aplicar transaccion cinco a Lucho" $ do
        it "Una billetera de 10 monedas deberia quedar con 17" $ (billetera.transaccionCinco lucho) billeteraDiez `shouldBe` 17
        
-{-       -- Estos tests corresponden a la "función legible de transacciones"
+{-       -- Estos tests corresponden a la "funciÃ³n legible de transacciones"
      describe "Testeo 18. Aplicar la transaccion uno a Pepe" $ do
        it "La billetera de Pepe deberia quedar igual" $ (billetera.aplicar "transaccion uno" pepe) pepe `shouldBe` billetera(pepe)
      describe "Testeo 19. Aplicar transaccion cinco a Lucho" $ do
@@ -176,7 +176,7 @@ test = hspec $ do
 
 
 
--- Generamos un método legible para ver el impacto de una transacción
+-- Generamos un mÃ©todo legible para ver el impacto de una transacciÃ³n
 
 aplicar transaccion  | transaccion == "transaccion uno" = transaccionUno 
                      | transaccion == "transaccion dos" = transaccionDos
