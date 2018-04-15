@@ -102,7 +102,8 @@ transaccionCuatro usuario | nombre(usuario) == "Luciano" = ahorranteErrante
                           | otherwise = quedaIgual
 
 transaccionCinco usuario | nombre(usuario) == "Jose" = extraccion 7 -- Esta función recibe un usuario, el número a depositar/extraer y el otro usuario
-                         | otherwise = deposito 7
+                         | nombre(usuario) == "Luciano" = deposito 7
+                         | otherwise = quedaIgual
 
 
 
