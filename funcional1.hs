@@ -13,7 +13,7 @@ type Plata = Float
 type Nombre = String
 
 data User = User {
-     nombre :: String,
+     nombre :: Nombre,
      billetera :: Plata,
      evento :: String -- evento devolverán el nombre del Evento
 } deriving (Show, Eq)
