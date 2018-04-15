@@ -123,7 +123,7 @@ test = hspec $ do
      describe "Testeo 4. Hacer un upgrade a una billetera de 10 monedas" $ do
        it "Billetera con 12 monedas" $ (billetera.upgrade) billeteraDiez `shouldBe` 12
        
-     describe "Testeo 5. Cerrar la cuenta de una billetera de 10 monedas" $ do
+     describe "Testep 5. Cerrar la cuenta de una billetera de 10 monedas" $ do
        it "Billetera con 0 monedas" $ (billetera.cierreCuenta) billeteraDiez `shouldBe` 0
        
      describe "Testeo 6. No modificar una billetera de 10 monedas" $ do
