@@ -9,18 +9,22 @@ import Test.Hspec
 -- Para simplificar las cosas, armamos la data Evento que contiene nombre y billetera para usar con los eventos
 -- y con los usuarios. De yapa está el campo Evento que tiene el nombre del Evento ocurrido. 
 
+type Plata = Float
+type Nombre = String
+
 data User = User {
      nombre :: String,
-     billetera :: Float,
+     billetera :: Plata,
      evento :: String -- evento devolverán el nombre del Evento
 } deriving (Show, Eq)
 
 
 -- Definimos el tipo Evento, y las funciones devolverán Eventos con estructura User
+
 type Evento = User
-deposito :: Float -> User -> Evento
+deposito :: Plata -> User -> Evento
 upgrade :: User -> Evento
-extraccion :: Float -> User -> Evento
+extraccion :: Plata -> User -> Evento
 cierreCuenta :: User -> Evento
 quedaIgual :: User -> Evento
 tocoYMeVoy :: User -> Evento
@@ -40,8 +44,8 @@ billeteraCincuenta = User {nombre = "Test", billetera = 50, evento = "Testeo"} -
 
 {-
 Eventos.
-A continuación creamos funciones que devuelvan un tipo Evento. Se decidio devolver
-toda la información del usuario, luego de aplicar el evento.
+A continuación creamos funciones que devuelvan un tipo Evento. Se decidio que 
+la información relevante es: billetera y nombre del evento que se aplica.
 -}
 
 deposito numero usuario | numero >= 0 = usuario {billetera = billetera(usuario)+numero, evento = "Deposito"}
@@ -107,7 +111,6 @@ transaccionCinco usuario | nombre(usuario) == "Jose" = extraccion 7 -- Esta func
 
 
 
-
 -- Se realizan los testeos pedidos, ordenados según el TP.
 
 
@@ -124,7 +127,7 @@ test = hspec $ do
      describe "Testeo 4. Hacer un upgrade a una billetera de 10 monedas" $ do
        it "Billetera con 12 monedas" $ (billetera.upgrade) billeteraDiez `shouldBe` 12
        
-     describe "Testeo 5. Cerrar la cuenta de una billetera de 10 monedas" $ do
+     describe "Testep 5. Cerrar la cuenta de una billetera de 10 monedas" $ do
        it "Billetera con 0 monedas" $ (billetera.cierreCuenta) billeteraDiez `shouldBe` 0
        
      describe "Testeo 6. No modificar una billetera de 10 monedas" $ do
@@ -178,6 +181,9 @@ test = hspec $ do
 
 
 -- Generamos un método legible para ver el impacto de una transacción
+
+type TransaccionElegida = [Char]
+aplicar :: TransaccionElegida -> User -> User -> Evento
 
 aplicar transaccion  | transaccion == "transaccion uno" = transaccionUno 
                      | transaccion == "transaccion dos" = transaccionDos
