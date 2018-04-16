@@ -21,14 +21,14 @@ data User = User {
 
 -- Definimos el tipo Evento, y las funciones devolverán Eventos con estructura User
 
-type Evento = User
-deposito :: Plata -> User -> Evento
+type Evento = User -> User
+deposito :: Plata -> Evento
 upgrade :: User -> Evento
-extraccion :: Plata -> User -> Evento
-cierreCuenta :: User -> Evento
-quedaIgual :: User -> Evento
-tocoYMeVoy :: User -> Evento
-ahorranteErrante :: User -> Evento
+extraccion :: Plata -> Evento
+cierreCuenta :: Evento
+quedaIgual :: Evento
+tocoYMeVoy :: Evento
+ahorranteErrante :: Evento
 
 --                                                         ENTREGA I
 
@@ -183,7 +183,7 @@ test = hspec $ do
 -- Generamos un método legible para ver el impacto de una transacción
 
 type TransaccionElegida = [Char]
-aplicar :: TransaccionElegida -> User -> User -> Evento
+aplicar :: TransaccionElegida -> User -> Evento
 
 aplicar transaccion  | transaccion == "transaccion uno" = transaccionUno 
                      | transaccion == "transaccion dos" = transaccionDos
