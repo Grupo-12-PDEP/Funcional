@@ -23,7 +23,7 @@ data User = User {
 
 type Evento = User -> User
 deposito :: Plata -> Evento
-upgrade :: User -> Evento
+upgrade :: Evento
 extraccion :: Plata -> Evento
 cierreCuenta :: Evento
 quedaIgual :: Evento
