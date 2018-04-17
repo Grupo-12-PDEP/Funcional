@@ -18,7 +18,7 @@ type Evento = Billetera -> Billetera
 --nueva billetera con su valor afectado.
 
 deposito :: Plata -> Evento
-deposito = (+) 
+deposito = (+)
 
 upgrade :: Evento
 upgrade unaBilletera = (+) (min (unaBilletera*0.2) 10) unaBilletera
@@ -54,17 +54,17 @@ type Transaccion = Usuario -> Evento
 --La transaccion la definimos como una funcion que recibe como parametro el
 --usuario a quien se le aplica, y devuelve el evento que produce en su billetera
 
-crearTransaccion :: Nombre -> Evento -> Transaccion
-crearTransaccion unNombre unEvento aQuienLeAplica | unNombre == nombre aQuienLeAplica = unEvento
-                                                  | otherwise = quedaIgual
+crearTransaccion :: Usuario -> Evento -> Transaccion
+crearTransaccion unUsuario unEvento aQuienLeAplica | nombre unUsuario == nombre aQuienLeAplica = unEvento
+                                                   | otherwise = quedaIgual
 
 --Para facilitar la creacion de transaccciones, esta funcion recibe el evento
 --de la transaccion y el nombre de quien le ocurre, y devuelve una transaccion
 --que luego se podra aplicar a distintos usuarios.
 
 
-transaccionUno = crearTransaccion "Luciano" cierreCuenta
-transaccionDos = crearTransaccion "Jose" (deposito 5)
+transaccionUno = crearTransaccion lucho cierreCuenta
+transaccionDos = crearTransaccion pepe (deposito 5)
 
 
 
@@ -79,23 +79,23 @@ ahorroErrante = (deposito 10) . upgrade . (deposito 8) . (extraccion 1)
   . (deposito 2) . (deposito 1)
 
 
-transaccionTres = crearTransaccion "Luciano" tocoYMeVoy
-transaccionCuatro = crearTransaccion "Luciano" ahorroErrante
+transaccionTres = crearTransaccion lucho tocoYMeVoy
+transaccionCuatro = crearTransaccion lucho ahorroErrante
 
 
 
 
 --Pago entre usuarios
 
-crearPago :: Nombre -> Nombre -> Plata -> Transaccion
-crearPago quienPaga quienRecibe monto aQuienLeAplica | nombre aQuienLeAplica == quienPaga = extraccion monto
-                                                     | nombre aQuienLeAplica == quienRecibe = deposito monto
+crearPago :: Usuario -> Usuario -> Plata -> Transaccion
+crearPago quienPaga quienRecibe monto aQuienLeAplica | nombre aQuienLeAplica == nombre quienPaga = extraccion monto
+                                                     | nombre aQuienLeAplica == nombre quienRecibe = deposito monto
                                                      | otherwise = quedaIgual
 
 --La funcion crearPago como parametros el monto y los involucrados en la
 --transaccion, y devuelve una transaccion aplicable a cualquier usuarios
 
-transaccionCinco = crearPago "Jose" "Luciano" 7
+transaccionCinco = crearPago pepe lucho 7
 
 
 
