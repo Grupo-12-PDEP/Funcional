@@ -18,7 +18,7 @@ type Evento = Billetera -> Billetera
 --nueva billetera con su valor afectado.
 
 deposito :: Plata -> Evento
-deposito monto = (+) monto
+deposito = (+) 
 
 upgrade :: Evento
 upgrade unaBilletera = (+) (min (unaBilletera*0.2) 10) unaBilletera
