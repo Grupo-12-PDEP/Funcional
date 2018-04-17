@@ -18,17 +18,14 @@ type Evento = Billetera -> Billetera
 --nueva billetera con su valor afectado.
 
 deposito :: Plata -> Evento
-deposito monto | monto > 0 = (+) monto
-               | otherwise = error "el monto debe ser positivo"
+deposito monto = (+) monto
 
 upgrade :: Evento
-upgrade unaBilletera | unaBilletera * 0.2 <= 10 = unaBilletera * 1.2
-                     | otherwise = unaBilletera + 10
+upgrade unaBilletera = (+) (min (unaBilletera*0.2) 10) unaBilletera
 
 extraccion :: Plata -> Evento
-extraccion monto unaBilletera | monto < 0 = error "el monto debe ser positivo"
-                              | unaBilletera - monto < 0 = 0
-                              | otherwise = unaBilletera - monto
+extraccion monto unaBilletera = max 0 ((-) unaBilletera monto)
+
 cierreCuenta :: Evento
 cierreCuenta unaBilletera = 0
 
