@@ -43,9 +43,9 @@ data Usuario = Usuario {
      billetera :: Billetera
 } deriving (Show)
 
-pepe = Usuario "Jose" 10
-lucho = Usuario "Luciano" 2
-pepe2 = Usuario "Jose" 20
+pepe = Usuario {nombre = "Jose", billetera = 10}
+lucho = Usuario {nombre = "Luciano", billetera = 2}
+pepe2 = Usuario {nombre = "Jose", billetera = 20}
 
 
 -- Transacciones
