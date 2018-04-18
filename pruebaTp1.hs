@@ -72,11 +72,10 @@ transaccionDos = crearTransaccion "Jose" (deposito 5)
 --Nuevos eventos
 
 tocoYMeVoy :: Evento
-tocoYMeVoy = cierreCuenta . upgrade . (deposito 15)
+tocoYMeVoy = (cierreCuenta . upgrade . deposito 15)
 
 ahorroErrante :: Evento
-ahorroErrante = (deposito 10) . upgrade . (deposito 8) . (extraccion 1)
-  . (deposito 2) . (deposito 1)
+ahorroErrante = (deposito 10 . upgrade . deposito 8 . extraccion 1. deposito 2 . deposito 1)
 
 
 transaccionTres = crearTransaccion "Luciano" tocoYMeVoy
