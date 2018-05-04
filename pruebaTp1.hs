@@ -18,7 +18,7 @@ type Evento = Billetera -> Billetera
 --nueva billetera con su valor afectado.
 
 deposito :: Plata -> Evento
-deposito = (+) 
+deposito = (+)
 
 upgrade :: Evento
 upgrade unaBilletera = (+) (min (unaBilletera*0.2) 10) unaBilletera
@@ -42,6 +42,8 @@ data Usuario = Usuario {
      nombre :: Nombre,
      billetera :: Billetera
 } deriving (Show)
+
+nuevaBilletera nuevoMonto unUsuario = unUsuario {billetera = nuevoMonto}
 
 pepe = Usuario {nombre = "Jose", billetera = 10}
 lucho = Usuario {nombre = "Luciano", billetera = 2}
@@ -72,10 +74,11 @@ transaccionDos = crearTransaccion "Jose" (deposito 5)
 --Nuevos eventos
 
 tocoYMeVoy :: Evento
-tocoYMeVoy = (cierreCuenta . upgrade . deposito 15)
+tocoYMeVoy = cierreCuenta . upgrade . (deposito 15)
 
 ahorroErrante :: Evento
-ahorroErrante = (deposito 10 . upgrade . deposito 8 . extraccion 1. deposito 2 . deposito 1)
+ahorroErrante = (deposito 10) . upgrade . (deposito 8) . (extraccion 1)
+  . (deposito 2) . (deposito 1)
 
 
 transaccionTres = crearTransaccion "Luciano" tocoYMeVoy
@@ -101,7 +104,7 @@ transaccionCinco = crearPago "Jose" "Luciano" 7
 
 --Testing
 
-testing = hspec $ do
+testingPrimeraEntrega = hspec $ do
   describe "Tests de eventos sobre una billetera de 10 monedas" $ do
     it "1. Depositar 10 más. Debería quedar con 20 monedas." $ deposito 10 10 `shouldBe` 20
     it "2. Extraer 3: Debería quedar con 7." $ extraccion 3 10 `shouldBe` 7
@@ -123,5 +126,23 @@ testing = hspec $ do
     it "15. Aplicar la transaccion 4 a Lucho. Aplicar el evento resultante a una billetera de 10 monedas. Debe quedar con 34." $ transaccionCuatro lucho 10 `shouldBe` 34
     it "16. Aplicar la transacción 5 a Pepe. Debería causar el evento de extracción de 7 unidades. Al aplicarlo a una billetera de 10 monedas, debería dar una nueva billetera de 3." $ transaccionCinco pepe 10 `shouldBe` 3
     it "17. Aplicar la transacción 5 a Lucho. Debería causar el evento de depósito de 7 unidades. Al aplicarlo a una billetera de 10 monedas, quedando con 17." $ transaccionCinco lucho 10 `shouldBe` 17
+
+
+
+
+--Usuario luego de transacción
+
+impactar :: Transaccion -> Usuario -> Usuario
+impactar unaTransaccion unUsuario = nuevaBilletera ( (unaTransaccion unUsuario) (billetera unUsuario) ) unUsuario
+
+
+
+testingSegundaEntrega = hspec $ do
+  describe "Tests sobre usuarios luego de impacar transacciones" $ do
+    it "Impactar la transacción 1 a Pepe. Debería quedar igual que como está inicialmente." $ billetera (impactar transaccionUno pepe) `shouldBe` billetera pepe
+    it "Impactar la transacción 5 a Lucho. Debería producir que Lucho tenga 9 monedas en su billetera." $ billetera (impactar transaccionCinco lucho) `shouldBe` 9
+    it "Impactar la transacción 5 y luego la 2 a Pepe. Eso hace que tenga 8 en su billetera." $ billetera ( (impactar transaccionDos . impactar transaccionCinco) pepe ) `shouldBe` 8
+
+
 
 --Fin
