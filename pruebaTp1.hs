@@ -41,7 +41,7 @@ type Nombre = String
 data Usuario = Usuario {
      nombre :: Nombre,
      billetera :: Billetera
-} deriving (Show)
+} deriving (Show, Eq)
 
 nuevaBilletera nuevoMonto unUsuario = unUsuario {billetera = nuevoMonto}
 
@@ -74,11 +74,11 @@ transaccionDos = crearTransaccion "Jose" (deposito 5)
 --Nuevos eventos
 
 tocoYMeVoy :: Evento
-tocoYMeVoy = cierreCuenta . upgrade . (deposito 15)
+tocoYMeVoy = cierreCuenta . upgrade . deposito 15
 
 ahorroErrante :: Evento
-ahorroErrante = (deposito 10) . upgrade . (deposito 8) . (extraccion 1)
-  . (deposito 2) . (deposito 1)
+ahorroErrante = deposito 10 . upgrade . deposito 8 . extraccion 1
+  . deposito 2 . deposito 1
 
 
 transaccionTres = crearTransaccion "Luciano" tocoYMeVoy
@@ -139,9 +139,9 @@ impactar unaTransaccion unUsuario = nuevaBilletera ( (unaTransaccion unUsuario) 
 
 testingSegundaEntrega = hspec $ do
   describe "Tests sobre usuarios luego de impacar transacciones" $ do
-    it "Impactar la transacción 1 a Pepe. Debería quedar igual que como está inicialmente." $ billetera (impactar transaccionUno pepe) `shouldBe` billetera pepe
-    it "Impactar la transacción 5 a Lucho. Debería producir que Lucho tenga 9 monedas en su billetera." $ billetera (impactar transaccionCinco lucho) `shouldBe` 9
-    it "Impactar la transacción 5 y luego la 2 a Pepe. Eso hace que tenga 8 en su billetera." $ billetera ( (impactar transaccionDos . impactar transaccionCinco) pepe ) `shouldBe` 8
+    it "Impactar la transacción 1 a Pepe. Debería quedar igual que como está inicialmente." $ impactar transaccionUno pepe `shouldBe` pepe
+    it "Impactar la transacción 5 a Lucho. Debería producir que Lucho tenga 9 monedas en su billetera." $ impactar transaccionCinco lucho `shouldBe` nuevaBilletera 9 lucho
+    it "Impactar la transacción 5 y luego la 2 a Pepe. Eso hace que tenga 8 en su billetera." $ (impactar transaccionDos . impactar transaccionCinco) pepe  `shouldBe` nuevaBilletera 8 pepe
 
 
 
