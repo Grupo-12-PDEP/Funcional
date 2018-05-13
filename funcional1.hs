@@ -216,6 +216,7 @@ potenciarCadena :: Int -> Blockchain
 potenciarCadena n = ( concat (take (2^n) masBloque1) : potenciarCadena (n + 1) )
 
 aplicarHasta10000 :: Usuario -> Blockchain -> Int -> Int
+aplicarHasta10000 _ [] _ = 0
 aplicarHasta10000 unUsuario ( cabeza : cola ) cantBloques | billetera unUsuario >= 10000 = cantBloques
                                                           | otherwise = aplicarHasta10000 (impactarBloque unUsuario cabeza) cola (cantBloques + 1)
 
