@@ -206,9 +206,9 @@ type CantidadBloques = Int
 aplicarNBloques :: Usuario -> CantidadBloques -> Blockchain -> Usuario
 aplicarNBloques unUsuario cantBloques unBlockchain = aplicarBlockchain unUsuario (take cantBloques unBlockchain)
 
-aplicarVariosBlockchain :: [Usuario] -> [Usuario]
-aplicarVariosBlockchain [] = []
-aplicarVariosBlockchain ( cabeza : cola ) = ( aplicarBlockchain cabeza blockchain : aplicarVariosBlockchain cola )
+aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
+aplicarBlockchainAVariosUsuarios [] _ = []
+aplicarBlockchainAVariosUsuarios usuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) usuarios
 
 blockchainInfinita :: Blockchain
 blockchainInfinita = potenciarCadena 0
