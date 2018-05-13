@@ -202,7 +202,8 @@ aplicarBlockchain :: Usuario -> Blockchain -> Usuario
 aplicarBlockchain unUsuario [] = unUsuario
 aplicarBlockchain unUsuario cadenaDeBloques = foldl impactarBloque unUsuario cadenaDeBloques
 
-aplicarNBloques :: Usuario -> Int -> Usuario
+type CantidadBloques = Int
+aplicarNBloques :: Usuario -> CanitdadBloques -> Usuario
 aplicarNBloques unUsuario cantBloques = aplicarBlockchain unUsuario (take cantBloques blockchain)
 
 aplicarVariosBlockchain :: [Usuario] -> [Usuario]
