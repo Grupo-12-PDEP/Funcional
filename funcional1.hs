@@ -189,10 +189,10 @@ bloque2 :: Bloque
 bloque2 = [transaccionDos, transaccionDos, transaccionDos, transaccionDos, transaccionDos]
 
 masBloque1 :: Blockchain
-masBloque1 = repeat bloque1
+masBloque1 = replicate 10 bloque1
 
 blockchain :: Blockchain
-blockchain = ( bloque2 : take 10 masBloque1 )
+blockchain = ( bloque2 : masBloque1 )
 
 peorBloque :: Usuario -> String
 peorBloque unUsuario | billetera (impactarBloque unUsuario (head blockchain)) < billetera (impactarBloque unUsuario (head masBloque1)) = "Bloque 2"
