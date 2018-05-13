@@ -43,7 +43,9 @@ data Usuario = Usuario {
       nombre :: Nombre
 } deriving (Show, Eq, Ord)
 
+
 nuevaBilletera nuevoMonto unUsuario = unUsuario {billetera = nuevoMonto}
+
 
 pepe = Usuario {nombre = "Jose", billetera = 10}
 lucho = Usuario {nombre = "Luciano", billetera = 2}
@@ -147,6 +149,7 @@ testingPrimeraEntrega = hspec $ do
 
 
 
+
 --Usuario luego de transacción
 
 impactar :: Transaccion -> Usuario -> Usuario
@@ -177,6 +180,7 @@ comparoYMeQuedoConElOriginalDelMenor unBloque unUsuario otroUsuario | impactarBl
                                                                     | otherwise = otroUsuario
 quienEsElMenosAdineradoConBloque :: Bloque -> [Usuario] -> Usuario
 quienEsElMenosAdineradoConBloque unBloque usuarios = foldr (comparoYMeQuedoConElOriginalDelMenor unBloque) (Usuario 0 "Nadie tiene un mango") usuarios
+
 
 
 
