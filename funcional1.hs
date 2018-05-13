@@ -1,8 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 import Text.Show.Functions -- Para mostrar <Function> en consola cada vez que devuelven una
-import Data.List -- Para m�todos de colecciones que no vienen por defecto (ver gu�a de lenguajes)
-import Data.Maybe -- Por si llegan a usar un m�todo de colecci�n que devuelva �Just suElemento� o �Nothing�.
-import Test.Hspec -- Para poder usar los tests que se piden m�s abajo (ponerlo luego de instalar hspec!!)
+import Data.List -- Para métodos de colecciones que no vienen por defecto (ver guía de lenguajes)
+import Data.Maybe -- Por si llegan a usar un método de colección que devuelva "Just suElemento" o "Nothing".
+import Test.Hspec -- Para poder usar los tests que se piden más abajo (ponerlo luego de instalar hspec!!)
 
 --Eventos
 
@@ -143,7 +143,7 @@ testingSegundaEntrega = hspec $ do
 
   describe "Tests de block chain" $ do
     it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ peorBloque pepe `shouldBe` "Bloque 1"
-    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ aplicarBlockchain pepe blockchain `shouldBe` pepe {billetera = 115}
+    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ aplicarBlockchain blockchain pepe `shouldBe` pepe {billetera = 115}
     it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ aplicarNBloques pepe 3 `shouldBe` pepe {billetera = 51}
     it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarVariosBlockchain [lucho, pepe]) `shouldBe` 115
 
@@ -161,27 +161,44 @@ type Bloque = [Transaccion]
 
 bloque1 = [transaccionUno, transaccionDos, transaccionDos, transaccionDos, transaccionTres, transaccionCuatro, transaccionCinco, transaccionTres]
 
+--Usuario luego de una cadena de transacciones seguidas
+
 impactarBloque :: Usuario -> Bloque -> Usuario
 impactarBloque = foldl (flip impactar)
 
+--Funciones para comparar la billetera de un grupo de usuarios con un monto fijo
+
 quienesQuedanConBilleteraMayorA :: Plata -> Bloque -> [Usuario] -> [Usuario]
 quienesQuedanConBilleteraMayorA _ _ [] = []
-quienesQuedanConBilleteraMayorA monto bloque ( cabeza : cola ) | billetera (impactarBloque cabeza bloque) >= monto = ( cabeza : quienesQuedanConBilleteraMayorA monto bloque cola )
-                                                               | otherwise = quienesQuedanConBilleteraMayorA monto bloque cola
+quienesQuedanConBilleteraMayorA monto unBloque ( cabeza : cola ) | billetera (impactarBloque cabeza unBloque) >= monto = ( cabeza : quienesQuedanConBilleteraMayorA monto unBloque cola )
+                                                                 | otherwise = quienesQuedanConBilleteraMayorA monto unBloque cola
 
-comparoYMeQuedoConElOriginalDelMayor :: Bloque -> Usuario -> Usuario -> Usuario
-comparoYMeQuedoConElOriginalDelMayor unBloque unUsuario otroUsuario | billetera (impactarBloque unUsuario unBloque) >= billetera (impactarBloque otroUsuario unBloque) = unUsuario
-                                                                    | otherwise = otroUsuario
+--Funciones para comparar las billeteras de un grupo de usuarios
+
+type ComparacionDeCaudal = Plata -> Plata -> Bool
+
+crearComparacion :: ComparacionDeCaudal -> Bloque -> Usuario -> Usuario -> Usuario
+crearComparacion comparacion unBloque unUsuario otroUsuario | billetera (impactarBloque otroUsuario unBloque) `comparacion` billetera (impactarBloque unUsuario unBloque) = otroUsuario
+                                                            | otherwise = unUsuario
+
+type ComparacionDeBilleteras = Bloque -> Usuario -> Usuario -> Usuario
+
+compararEntreUsuarios :: ComparacionDeBilleteras -> Bloque -> [Usuario] -> Usuario
+compararEntreUsuarios comparacion unBloque unosUsuarios = foldl (comparacion unBloque) (Usuario "Nadie tiene un mango" 0) unosUsuarios
+
+comparoYMeQuedoConElOriginalDelMayor :: ComparacionDeBilleteras
+comparoYMeQuedoConElOriginalDelMayor = crearComparacion (>=)
 
 quienEsElMasAdineradoConBloque :: Bloque -> [Usuario] -> Usuario
-quienEsElMasAdineradoConBloque unBloque unosUsuarios = foldl (comparoYMeQuedoConElOriginalDelMayor unBloque) (Usuario "Nadie tiene un mango" 0) unosUsuarios
+quienEsElMasAdineradoConBloque = compararEntreUsuarios comparoYMeQuedoConElOriginalDelMayor
 
-comparoYMeQuedoConElOriginalDelMenor :: Bloque -> Usuario -> Usuario -> Usuario
-comparoYMeQuedoConElOriginalDelMenor unBloque unUsuario otroUsuario | billetera (impactarBloque unUsuario unBloque) >= billetera (impactarBloque otroUsuario unBloque) = otroUsuario
-                                                                    | otherwise = unUsuario
+comparoYMeQuedoConElOriginalDelMenor :: ComparacionDeBilleteras
+comparoYMeQuedoConElOriginalDelMenor = crearComparacion (<=)
 
 quienEsElMenosAdineradoConBloque :: Bloque -> [Usuario] -> Usuario
-quienEsElMenosAdineradoConBloque unBloque unosUsuarios = foldl (comparoYMeQuedoConElOriginalDelMenor unBloque) (Usuario "Nadie tiene un mango" 0) unosUsuarios
+quienEsElMenosAdineradoConBloque = compararEntreUsuarios comparoYMeQuedoConElOriginalDelMenor
+
+--BlockChain
 
 type Blockchain = [Bloque]
 
@@ -194,29 +211,36 @@ masBloque1 = repeat bloque1
 blockchain :: Blockchain
 blockchain = ( bloque2 : take 10 masBloque1 )
 
-peorBloque :: Usuario -> String
+--Funciones que permiten aplicar cadenas de bloques a usuarios
+
+type Sugerencia = String
+
+peorBloque :: Usuario -> Sugerencia
 peorBloque unUsuario | billetera (impactarBloque unUsuario (head blockchain)) < billetera (impactarBloque unUsuario (head masBloque1)) = "Bloque 2"
                      | otherwise = "Bloque 1"
 
-aplicarBlockchain :: Usuario -> Blockchain -> Usuario
-aplicarBlockchain unUsuario [] = unUsuario
-aplicarBlockchain unUsuario cadenaDeBloques = foldl impactarBloque unUsuario cadenaDeBloques
+aplicarBlockchain :: Blockchain -> Usuario -> Usuario
+aplicarBlockchain unaBlockchain unUsuario = foldl impactarBloque unUsuario unaBlockchain
 
-aplicarNBloques :: Usuario -> Int -> Usuario
-aplicarNBloques unUsuario cantBloques = aplicarBlockchain unUsuario (take cantBloques blockchain)
+type CantBloques = Int
+
+aplicarNBloques :: Usuario -> CantBloques -> Usuario
+aplicarNBloques unUsuario cantBloques = aplicarBlockchain (take cantBloques blockchain) unUsuario
 
 aplicarVariosBlockchain :: [Usuario] -> [Usuario]
-aplicarVariosBlockchain [] = []
-aplicarVariosBlockchain ( cabeza : cola ) = ( aplicarBlockchain cabeza blockchain : aplicarVariosBlockchain cola )
+aplicarVariosBlockchain = map (aplicarBlockchain blockchain)
+
+--BlockChain infinita y su respectiva funcion que permite saber cuantos bloques fueron necesarios aplicar para que un usuario alcance cierta cifra de creditos
 
 blockchainInfinita :: Blockchain
 blockchainInfinita = potenciarCadena 0
 
-potenciarCadena :: Int -> Blockchain
+type Semilla = Int
+
+potenciarCadena :: Semilla -> Blockchain
 potenciarCadena n = ( concat (take (2^n) masBloque1) : potenciarCadena (n + 1) )
 
-aplicarHasta10000 :: Usuario -> Blockchain -> Int -> Int
-aplicarHasta10000 _ [] _ = 0
+aplicarHasta10000 :: Usuario -> Blockchain -> Semilla -> CantBloques
 aplicarHasta10000 unUsuario ( cabeza : cola ) cantBloques | billetera unUsuario >= 10000 = cantBloques
                                                           | otherwise = aplicarHasta10000 (impactarBloque unUsuario cabeza) cola (cantBloques + 1)
 
