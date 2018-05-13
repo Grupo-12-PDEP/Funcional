@@ -200,7 +200,7 @@ peorBloque unUsuario | billetera (impactarBloque unUsuario (head blockchain)) < 
 
 aplicarBlockchain :: Usuario -> Blockchain -> Usuario
 aplicarBlockchain unUsuario [] = unUsuario
-aplicarBlockchain unUsuario cadenaDeBloques = foldl impactarBloque unUsuario cadenaDeBloques
+aplicarBlockchain unUsuario unBlockchain = foldl impactarBloque unUsuario unBlockchain
 
 type CantidadBloques = Int
 aplicarNBloques :: Usuario -> CantidadBloques -> Blockchain -> Usuario
