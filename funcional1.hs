@@ -143,7 +143,7 @@ testingSegundaEntrega = hspec $ do
 
   describe "Tests de block chain" $ do
     it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (peorBloque pepe blockchain []) `shouldBe` pepe {billetera = 18}
-    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ aplicarBlockchain blockchain pepe `shouldBe` pepe {billetera = 115}
+    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ (billetera.aplicarBlockchain pepe) blockchain `shouldBe` 115
     it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ aplicarNBloques pepe 3 blockchain `shouldBe` pepe {billetera = 51}
     it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios [lucho, pepe] blockchain) `shouldBe` 115
 
@@ -219,8 +219,8 @@ peorBloque unUsuario ( cabeza : cola ) [] = peorBloque unUsuario cola cabeza
 peorBloque unUsuario ( cabeza : cola ) peorBloqueHastaAhora | billetera (impactarBloque unUsuario cabeza) < billetera (impactarBloque unUsuario peorBloqueHastaAhora) = peorBloque unUsuario cola cabeza
                                                             | otherwise = peorBloque unUsuario cola peorBloqueHastaAhora
 
-aplicarBlockchain :: Blockchain -> Usuario -> Usuario
-aplicarBlockchain unaBlockchain unUsuario = foldl impactarBloque unUsuario unaBlockchain
+aplicarBlockchain :: Usuario -> Blockchain -> Usuario
+aplicarBlockchain unUsuario  = foldl impactarBloque unUsuario 
 
 type CantidadBloques = Int
 
