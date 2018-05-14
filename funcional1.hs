@@ -142,10 +142,10 @@ testingSegundaEntrega = hspec $ do
     it "Lucho queda con menos dinero luego de aplicar el bloque 1" $ quienEsElMenosAdineradoConBloque bloque1 [pepe, lucho] `shouldBe` lucho
 
   describe "Tests de block chain" $ do
-    it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ peorBloque pepe `shouldBe` "Bloque 1"
+    it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (peorBloque pepe blockchain []) `shouldBe` pepe {billetera = 18}
     it "Pepe luego de la block chain posee 115 creditos en su billetera" $ aplicarBlockchain blockchain pepe `shouldBe` pepe {billetera = 115}
-    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ aplicarNBloques pepe 3 `shouldBe` pepe {billetera = 51}
-    it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarVariosBlockchain [lucho, pepe]) `shouldBe` 115
+    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ aplicarNBloques pepe 3 blockchain `shouldBe` pepe {billetera = 51}
+    it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios [lucho, pepe] blockchain) `shouldBe` 115
 
   describe "Tests de block chain infinito" $ do
     it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques" $ aplicarHasta10000 pepe blockchainInfinita 0 `shouldBe` 11
@@ -213,22 +213,23 @@ blockchain = ( bloque2 : take 10 masBloque1 )
 
 --Funciones que permiten aplicar cadenas de bloques a usuarios
 
-type Sugerencia = String
-
-peorBloque :: Usuario -> Sugerencia
-peorBloque unUsuario | billetera (impactarBloque unUsuario (head blockchain)) < billetera (impactarBloque unUsuario (head masBloque1)) = "Bloque 2"
-                     | otherwise = "Bloque 1"
+peorBloque :: Usuario -> Blockchain -> Bloque -> Bloque
+peorBloque _ [] peorBloqueHastaAhora = peorBloqueHastaAhora
+peorBloque unUsuario ( cabeza : cola ) [] = peorBloque unUsuario cola cabeza
+peorBloque unUsuario ( cabeza : cola ) peorBloqueHastaAhora | billetera (impactarBloque unUsuario cabeza) < billetera (impactarBloque unUsuario peorBloqueHastaAhora) = peorBloque unUsuario cola cabeza
+                                                            | otherwise = peorBloque unUsuario cola peorBloqueHastaAhora
 
 aplicarBlockchain :: Blockchain -> Usuario -> Usuario
 aplicarBlockchain unaBlockchain unUsuario = foldl impactarBloque unUsuario unaBlockchain
 
 type CantidadBloques = Int
+
 aplicarNBloques :: Usuario -> CantidadBloques -> Blockchain -> Usuario
-aplicarNBloques unUsuario cantBloques unBlockchain = aplicarBlockchain unUsuario (take cantBloques unBlockchain)
+aplicarNBloques unUsuario cantidadBloques unBlockchain = aplicarBlockchain (take cantidadBloques unBlockchain) unUsuario
 
 aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
 aplicarBlockchainAVariosUsuarios [] _ = []
-aplicarBlockchainAVariosUsuarios usuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) usuarios
+aplicarBlockchainAVariosUsuarios unosUsuarios unBlockchain = map (aplicarBlockchain unBlockchain) unosUsuarios
 
 --BlockChain infinita y su respectiva funcion que permite saber cuantos bloques fueron necesarios aplicar para que un usuario alcance cierta cifra de creditos
 
@@ -240,8 +241,8 @@ type Semilla = Int
 potenciarCadena :: Semilla -> Blockchain
 potenciarCadena n = ( concat (take (2^n) masBloque1) : potenciarCadena (n + 1) )
 
-aplicarHasta10000 :: Usuario -> Blockchain -> Semilla -> CantBloques
-aplicarHasta10000 unUsuario ( cabeza : cola ) cantBloques | billetera unUsuario >= 10000 = cantBloques
-                                                          | otherwise = aplicarHasta10000 (impactarBloque unUsuario cabeza) cola (cantBloques + 1)
+aplicarHasta10000 :: Usuario -> Blockchain -> Semilla -> CantidadBloques
+aplicarHasta10000 unUsuario ( cabeza : cola ) cantidadBloques | billetera unUsuario >= 10000 = cantidadBloques
+                                                              | otherwise = aplicarHasta10000 (impactarBloque unUsuario cabeza) cola (cantidadBloques + 1)
 
 --Fin
