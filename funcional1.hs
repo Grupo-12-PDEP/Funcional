@@ -142,13 +142,13 @@ testingSegundaEntrega = hspec $ do
     it "Lucho queda con menos dinero luego de aplicar el bloque 1" $ quienEsElMenosAdineradoConBloque bloque1 [pepe, lucho] `shouldBe` lucho
 
   describe "Tests de block chain" $ do
-    it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (peorBloque pepe blockchain []) `shouldBe` pepe {billetera = 18}
-    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ (billetera.aplicarBlockchain pepe) blockchain `shouldBe` 115
-    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ (billetera.aplicarNBloques pepe 3) blockchain `shouldBe` 51
+    it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (elPeorDeLosBloques pepe blockchain) `shouldBe` pepe {billetera = 18}
+    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ (billetera . aplicarBlockchain pepe) blockchain `shouldBe` 115
+    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ (billetera . aplicarNBloques pepe 3) blockchain `shouldBe` 51
     it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios [lucho, pepe] blockchain) `shouldBe` 115
 
   describe "Tests de block chain infinito" $ do
-    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques" $ aplicarHasta10000 pepe blockchainInfinita 0 `shouldBe` 11
+    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques" $ aplicarHasta10000 pepe blockchainInfinita `shouldBe` 11
 
 --Usuario luego de transacción
 
@@ -159,6 +159,7 @@ impactar unaTransaccion unUsuario = nuevaBilletera (unaTransaccion unUsuario (bi
 
 type Bloque = [Transaccion]
 
+bloque1 :: Bloque
 bloque1 = [transaccionUno, transaccionDos, transaccionDos, transaccionDos, transaccionTres, transaccionCuatro, transaccionCinco, transaccionTres]
 
 --Usuario luego de una cadena de transacciones seguidas
@@ -213,6 +214,9 @@ blockchain = ( bloque2 : take 10 masBloque1 )
 
 --Funciones que permiten aplicar cadenas de bloques a usuarios
 
+elPeorDeLosBloques :: Usuario -> Blockchain -> Bloque
+elPeorDeLosBloques unUsuario unaBlockchain = peorBloque unUsuario unaBlockchain []
+
 peorBloque :: Usuario -> Blockchain -> Bloque -> Bloque
 peorBloque _ [] peorBloqueHastaAhora = peorBloqueHastaAhora
 peorBloque unUsuario ( cabeza : cola ) [] = peorBloque unUsuario cola cabeza
@@ -220,7 +224,7 @@ peorBloque unUsuario ( cabeza : cola ) peorBloqueHastaAhora | billetera (impacta
                                                             | otherwise = peorBloque unUsuario cola peorBloqueHastaAhora
 
 aplicarBlockchain :: Usuario -> Blockchain -> Usuario
-aplicarBlockchain unUsuario  = foldl impactarBloque unUsuario 
+aplicarBlockchain = foldl impactarBloque
 
 type CantidadBloques = Int
 
@@ -238,10 +242,13 @@ blockchainInfinita = potenciarCadena 0
 type Semilla = Int
 
 potenciarCadena :: Semilla -> Blockchain
-potenciarCadena n = ( concat (take (2^n) masBloque1) : potenciarCadena (n + 1) )
+potenciarCadena n = ( concat (take (2 ^ n) masBloque1) : potenciarCadena (n + 1) )
 
-aplicarHasta10000 :: Usuario -> Blockchain -> Semilla -> CantidadBloques
-aplicarHasta10000 unUsuario ( cabeza : cola ) cantidadBloques | billetera unUsuario >= 10000 = cantidadBloques
-                                                              | otherwise = aplicarHasta10000 (impactarBloque unUsuario cabeza) cola (cantidadBloques + 1)
+hasta10000 :: Usuario -> Blockchain -> Semilla -> CantidadBloques
+hasta10000 unUsuario ( cabeza : cola ) cantidadBloques | billetera unUsuario >= 10000 = cantidadBloques
+                                                       | otherwise = hasta10000 (impactarBloque unUsuario cabeza) cola (cantidadBloques + 1)
+
+aplicarHasta10000 :: Usuario -> Blockchain -> CantidadBloques
+aplicarHasta10000 unUsuario unaBlockchain = hasta10000 unUsuario unaBlockchain 0
 
 --Fin
