@@ -229,7 +229,7 @@ aplicarNBloques unUsuario cantidadBloques unBlockchain = aplicarBlockchain (take
 
 aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
 aplicarBlockchainAVariosUsuarios [] _ = []
-aplicarBlockchainAVariosUsuarios unosUsuarios unBlockchain = map (aplicarBlockchain unBlockchain) unosUsuarios
+aplicarBlockchainAVariosUsuarios unosUsuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) unosUsuarios
 
 --BlockChain infinita y su respectiva funcion que permite saber cuantos bloques fueron necesarios aplicar para que un usuario alcance cierta cifra de creditos
 
