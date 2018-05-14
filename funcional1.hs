@@ -227,8 +227,9 @@ type CantBloques = Int
 aplicarNBloques :: Usuario -> CantBloques -> Usuario
 aplicarNBloques unUsuario cantBloques = aplicarBlockchain (take cantBloques blockchain) unUsuario
 
-aplicarVariosBlockchain :: [Usuario] -> [Usuario]
-aplicarVariosBlockchain = map (aplicarBlockchain blockchain)
+aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
+aplicarBlockchainAVariosUsuarios [] _ = []
+aplicarBlockchainAVariosUsuarios usuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) usuarios
 
 --BlockChain infinita y su respectiva funcion que permite saber cuantos bloques fueron necesarios aplicar para que un usuario alcance cierta cifra de creditos
 
