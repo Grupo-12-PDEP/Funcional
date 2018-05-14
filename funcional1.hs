@@ -144,7 +144,7 @@ testingSegundaEntrega = hspec $ do
   describe "Tests de block chain" $ do
     it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (peorBloque pepe blockchain []) `shouldBe` pepe {billetera = 18}
     it "Pepe luego de la block chain posee 115 creditos en su billetera" $ (billetera.aplicarBlockchain pepe) blockchain `shouldBe` 115
-    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ aplicarNBloques pepe 3 blockchain `shouldBe` pepe {billetera = 51}
+    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ (billetera.aplicarNBloques pepe 3) blockchain `shouldBe` 51
     it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios [lucho, pepe] blockchain) `shouldBe` 115
 
   describe "Tests de block chain infinito" $ do
