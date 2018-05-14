@@ -229,7 +229,7 @@ aplicarBlockchain = foldl impactarBloque
 type CantidadBloques = Int
 
 aplicarNBloques :: Usuario -> CantidadBloques -> Blockchain -> Usuario
-aplicarNBloques unUsuario cantidadBloques unBlockchain = aplicarBlockchain (take cantidadBloques unBlockchain) unUsuario
+aplicarNBloques unUsuario cantidadBloques unBlockchain = aplicarBlockchain unUsuario (take cantidadBloques unBlockchain)
 
 aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
 aplicarBlockchainAVariosUsuarios unosUsuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) unosUsuarios
