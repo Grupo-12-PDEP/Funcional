@@ -140,6 +140,44 @@ testingPrimeraEntrega = hspec $ do
 --                                                          ENTREGA II
 
 
+--Testing
+
+testingSegundaEntrega = hspec $ do
+
+  describe "Tests de impacto" $ do
+    it "Impactar la transaccion 1 a Pepe"
+      $ impactar transaccionUno pepe `shouldBe` pepe
+    it "Impactar la transaccion 5 a Lucho"
+      $ impactar transaccionCinco lucho `shouldBe` lucho {billetera = 9}
+    it "Impactar la transaccion 5 y luego la 2 a Pepe"
+      $ (.) (impactar transaccionDos) (impactar transaccionCinco) pepe `shouldBe` pepe {billetera = 8}
+
+  describe "Tests de bloque" $ do
+    it "Aplicar bloque 1 a Pepe"
+      $ impactarBloque bloque1 pepe `shouldBe` pepe {billetera = 18}
+    it "Solo Pepe tendra un saldo mayor a 10 luego de aplicar el bloque 1"
+      $ quienesQuedanConBilleteraMayorA 10 bloque1 [pepe, lucho] `shouldBe` [pepe]
+    it "Pepe queda con mas dinero luego de aplicar el bloque 1"
+      $ elMasRicoLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` pepe
+    it "Lucho queda con menos dinero luego de aplicar el bloque 1"
+      $ elMasPobreLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` lucho
+
+  describe "Tests de block chain" $ do
+    it "Para Pepe el peor bloque de la block chain fue el bloque 1"
+      $ impactarBloque (peorBloque blockchain pepe) pepe `shouldBe` pepe {billetera = 18}
+    it "Pepe luego de la block chain posee 115 creditos en su billetera"
+      $ aplicarBlockchain blockchain pepe `shouldBe` pepe {billetera = 115}
+    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques"
+      $ aplicarNBloques blockchain 3 pepe `shouldBe` pepe {billetera = 51}
+    it "El saldo total entre Lucho y Pepe luego de un block chain es 115"
+      $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios blockchain [lucho, pepe]) `shouldBe` 115
+
+  describe "Tests de block chain infinito" $ do
+    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques"
+      $ cuantosBloquesSeNecesitanParaTener 10000 blockInf pepe `shouldBe` 11
+
+
+
 --Usuario luego de transacción
 
 impactar :: Transaccion -> Usuario -> Usuario
@@ -230,41 +268,6 @@ cuantosBloquesSeNecesitanParaTener _ [] _ = error "es imposible llegar a ese mon
 
 
 
---Testing
-
-testingSegundaEntrega = hspec $ do
-
-  describe "Tests de impacto" $ do
-    it "Impactar la transaccion 1 a Pepe"
-      $ impactar transaccionUno pepe `shouldBe` pepe
-    it "Impactar la transaccion 5 a Lucho"
-      $ impactar transaccionCinco lucho `shouldBe` lucho {billetera = 9}
-    it "Impactar la transaccion 5 y luego la 2 a Pepe"
-      $ (.) (impactar transaccionDos) (impactar transaccionCinco) pepe `shouldBe` pepe {billetera = 8}
-
-  describe "Tests de bloque" $ do
-    it "Aplicar bloque 1 a Pepe"
-      $ impactarBloque bloque1 pepe `shouldBe` pepe {billetera = 18}
-    it "Solo Pepe tendra un saldo mayor a 10 luego de aplicar el bloque 1"
-      $ quienesQuedanConBilleteraMayorA 10 bloque1 [pepe, lucho] `shouldBe` [pepe]
-    it "Pepe queda con mas dinero luego de aplicar el bloque 1"
-      $ elMasRicoLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` pepe
-    it "Lucho queda con menos dinero luego de aplicar el bloque 1"
-      $ elMasPobreLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` lucho
-
-  describe "Tests de block chain" $ do
-    it "Para Pepe el peor bloque de la block chain fue el bloque 1"
-      $ impactarBloque (peorBloque blockchain pepe) pepe `shouldBe` pepe {billetera = 18}
-    it "Pepe luego de la block chain posee 115 creditos en su billetera"
-      $ aplicarBlockchain blockchain pepe `shouldBe` pepe {billetera = 115}
-    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques"
-      $ aplicarNBloques blockchain 3 pepe `shouldBe` pepe {billetera = 51}
-    it "El saldo total entre Lucho y Pepe luego de un block chain es 115"
-      $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios blockchain [lucho, pepe]) `shouldBe` 115
-
-  describe "Tests de block chain infinito" $ do
-    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques"
-      $ cuantosBloquesSeNecesitanParaTener 10000 blockInf pepe `shouldBe` 11
 
 
 
