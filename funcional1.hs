@@ -38,9 +38,9 @@ quedaIgual = id
 type Nombre = String
 
 data Usuario = Usuario {
-      nombre :: Nombre,
-      billetera :: Billetera
-} deriving (Show, Eq)
+      billetera :: Billetera,
+      nombre :: Nombre
+} deriving (Show, Eq, Ord)
 
 nuevaBilletera :: Plata -> Usuario -> Usuario
 nuevaBilletera nuevoMonto unUsuario = unUsuario {billetera = nuevoMonto}
@@ -107,53 +107,81 @@ testingPrimeraEntrega = hspec $ do
     it "7. Depositar 1000, y luego tener un upgrade: 1020." $ (upgrade . deposito 1000) 10 `shouldBe` 1020
 
   describe "Tests sobre los usuarios definidos" $ do
-    it "8. ¿Cuál es la billetera de Pepe? Debería ser 10 monedas." $ billetera pepe `shouldBe` 10
-    it "9. ¿Cuál es la billetera de Pepe, luego de un cierre de su cuenta? Debería ser 0." $ (cierreCuenta . billetera) pepe `shouldBe` 0
-    it "10. ¿Cómo quedaría la billetera de Pepe si le depositan 15 monedas, extrae 2, y tiene un Upgrade? Debería quedar en 27.6." $ (upgrade . extraccion 2 . deposito 15 . billetera) pepe `shouldBe` 27.6
+    it "8. ¿Cuál es la billetera de Pepe? Debería ser 10 monedas."
+      $ billetera pepe `shouldBe` 10
+    it "9. ¿Cuál es la billetera de Pepe, luego de un cierre de su cuenta? Debería ser 0."
+      $ (cierreCuenta . billetera) pepe `shouldBe` 0
+    it "10. ¿Cómo quedaría la billetera de Pepe si le depositan 15 monedas, extrae 2, y tiene un Upgrade? Debería quedar en 27.6."
+      $ (upgrade . extraccion 2 . deposito 15 . billetera) pepe `shouldBe` 27.6
 
   describe "Tests sobre transacciones" $ do
-    it "11. Aplicar la transacción 1 a Pepe. Esto debería producir el evento quedaIgual, que si se aplicara a una billetera de 20 monedas, deberá dar una billetera con ese mismo monto." $ transaccionUno pepe 20 `shouldBe` 20
-    it "12. Hacer que la transacción 2 se aplique a Pepe. El resultado, deberá ser el evento de depositar 5 monedas. Aplicarlo a una billetera de 10 monedas, mostrando que queda con 15." $ transaccionDos pepe 10 `shouldBe` 15
-    it "13. Hacer que la transacción 2 se aplique al nuevo Pepe. Aplicar el evento resultante a una billetera de 50 monedas, y verificar que aumenta quedando con 55." $ transaccionDos pepe2 50 `shouldBe` 55
+    it "11. Aplicar la transacción 1 a Pepe. Esto debería producir el evento quedaIgual, que si se aplicara a una billetera de 20 monedas, deberá dar una billetera con ese mismo monto."
+      $ transaccionUno pepe 20 `shouldBe` 20
+    it "12. Hacer que la transacción 2 se aplique a Pepe. El resultado, deberá ser el evento de depositar 5 monedas. Aplicarlo a una billetera de 10 monedas, mostrando que queda con 15."
+      $ transaccionDos pepe 10 `shouldBe` 15
+    it "13. Hacer que la transacción 2 se aplique al nuevo Pepe. Aplicar el evento resultante a una billetera de 50 monedas, y verificar que aumenta quedando con 55."
+      $ transaccionDos pepe2 50 `shouldBe` 55
 
   describe "Tests sobre nuevos eventos" $ do
-    it "14. Aplicar la transaccion 3 a Lucho. Aplicar el evento resultante a una billetera de 10 monedas. Debe quedar con 0." $ transaccionTres lucho 10 `shouldBe` 0
-    it "15. Aplicar la transaccion 4 a Lucho. Aplicar el evento resultante a una billetera de 10 monedas. Debe quedar con 34." $ transaccionCuatro lucho 10 `shouldBe` 34
+    it "14. Aplicar la transaccion 3 a Lucho. Aplicar el evento resultante a una billetera de 10 monedas. Debe quedar con 0."
+      $ transaccionTres lucho 10 `shouldBe` 0
+    it "15. Aplicar la transaccion 4 a Lucho. Aplicar el evento resultante a una billetera de 10 monedas. Debe quedar con 34."
+      $ transaccionCuatro lucho 10 `shouldBe` 34
 
   describe "Tests sobre transacciones entre usuarios" $ do
-    it "16. Aplicar la transacción 5 a Pepe. Debería causar el evento de extracción de 7 unidades. Al aplicarlo a una billetera de 10 monedas, debería dar una nueva billetera de 3." $ transaccionCinco pepe 10 `shouldBe` 3
-    it "17. Aplicar la transacción 5 a Lucho. Debería causar el evento de depósito de 7 unidades. Al aplicarlo a una billetera de 10 monedas, quedando con 17." $ transaccionCinco lucho 10 `shouldBe` 17
+    it "16. Aplicar la transacción 5 a Pepe. Debería causar el evento de extracción de 7 unidades. Al aplicarlo a una billetera de 10 monedas, debería dar una nueva billetera de 3."
+      $ transaccionCinco pepe 10 `shouldBe` 3
+    it "17. Aplicar la transacción 5 a Lucho. Debería causar el evento de depósito de 7 unidades. Al aplicarlo a una billetera de 10 monedas, quedando con 17."
+      $ transaccionCinco lucho 10 `shouldBe` 17
+
+
+
 
 --                                                          ENTREGA II
+
 
 --Testing
 
 testingSegundaEntrega = hspec $ do
 
   describe "Tests de impacto" $ do
-    it "Impactar la transaccion 1 a Pepe" $ impactar transaccionUno pepe `shouldBe` pepe
-    it "Impactar la transaccion 5 a Lucho" $ impactar transaccionCinco lucho `shouldBe` lucho {billetera = 9}
-    it "Impactar la transaccion 5 y luego la 2 a Pepe" $ (.) (impactar transaccionDos) (impactar transaccionCinco) pepe `shouldBe` pepe {billetera = 8}
+    it "Impactar la transaccion 1 a Pepe"
+      $ impactar transaccionUno pepe `shouldBe` pepe
+    it "Impactar la transaccion 5 a Lucho"
+      $ impactar transaccionCinco lucho `shouldBe` lucho {billetera = 9}
+    it "Impactar la transaccion 5 y luego la 2 a Pepe"
+      $ (.) (impactar transaccionDos) (impactar transaccionCinco) pepe `shouldBe` pepe {billetera = 8}
 
   describe "Tests de bloque" $ do
-    it "Aplicar bloque 1 a Pepe" $ impactarBloque pepe bloque1 `shouldBe` pepe {billetera = 18}
-    it "Solo Pepe tendra un saldo mayor a 10 luego de aplicar el bloque 1" $ quienesQuedanConBilleteraMayorA 10 bloque1 [pepe, lucho] `shouldBe` [pepe]
-    it "Pepe queda con mas dinero luego de aplicar el bloque 1" $ quienEsElMasAdineradoConBloque bloque1 [pepe, lucho] `shouldBe` pepe
-    it "Lucho queda con menos dinero luego de aplicar el bloque 1" $ quienEsElMenosAdineradoConBloque bloque1 [pepe, lucho] `shouldBe` lucho
+    it "Aplicar bloque 1 a Pepe"
+      $ impactarBloque bloque1 pepe `shouldBe` pepe {billetera = 18}
+    it "Solo Pepe tendra un saldo mayor a 10 luego de aplicar el bloque 1"
+      $ quienesQuedanConBilleteraMayorA 10 bloque1 [pepe, lucho] `shouldBe` [pepe]
+    it "Pepe queda con mas dinero luego de aplicar el bloque 1"
+      $ elMasRicoLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` pepe
+    it "Lucho queda con menos dinero luego de aplicar el bloque 1"
+      $ elMasPobreLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` lucho
 
   describe "Tests de block chain" $ do
-    it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (elPeorDeLosBloques pepe blockchain) `shouldBe` pepe {billetera = 18}
-    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ (billetera . aplicarBlockchain pepe) blockchain `shouldBe` 115
-    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ (billetera . aplicarNBloques pepe 3) blockchain `shouldBe` 51
-    it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios [lucho, pepe] blockchain) `shouldBe` 115
+    it "Para Pepe el peor bloque de la block chain fue el bloque 1"
+      $ impactarBloque (peorBloque blockchain pepe) pepe `shouldBe` pepe {billetera = 18}
+    it "Pepe luego de la block chain posee 115 creditos en su billetera"
+      $ aplicarBlockchain blockchain pepe `shouldBe` pepe {billetera = 115}
+    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques"
+      $ aplicarNBloques blockchain 3 pepe `shouldBe` pepe {billetera = 51}
+    it "El saldo total entre Lucho y Pepe luego de un block chain es 115"
+      $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios blockchain [lucho, pepe]) `shouldBe` 115
 
   describe "Tests de block chain infinito" $ do
-    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques" $ cuantosBloquesSeNecesitanParaTener 10000 blockInf pepe `shouldBe` 11
+    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques"
+      $ cuantosBloquesSeNecesitanParaTener 10000 blockInf pepe `shouldBe` 11
+
+
 
 --Usuario luego de transacción
 
 impactar :: Transaccion -> Usuario -> Usuario
-impactar unaTransaccion unUsuario = nuevaBilletera (unaTransaccion unUsuario (billetera unUsuario) ) unUsuario
+impactar unaTransaccion unUsuario = nuevaBilletera (unaTransaccion unUsuario (billetera unUsuario)) unUsuario
 
 --Bloque
 
@@ -164,40 +192,30 @@ bloque1 = [transaccionUno, transaccionDos, transaccionDos, transaccionDos, trans
 
 --Usuario luego de una cadena de transacciones seguidas
 
-impactarBloque :: Usuario -> Bloque -> Usuario
-impactarBloque = foldl (flip impactar)
+impactarBloque :: Bloque -> Usuario -> Usuario
+impactarBloque = flip (foldr impactar)
 
 --Funciones para comparar la billetera de un grupo de usuarios con un monto fijo
 
 quienesQuedanConBilleteraMayorA :: Plata -> Bloque -> [Usuario] -> [Usuario]
-quienesQuedanConBilleteraMayorA _ _ [] = []
-quienesQuedanConBilleteraMayorA monto unBloque ( cabeza : cola ) | billetera (impactarBloque cabeza unBloque) >= monto = ( cabeza : quienesQuedanConBilleteraMayorA monto unBloque cola )
-                                                                 | otherwise = quienesQuedanConBilleteraMayorA monto unBloque cola
+quienesQuedanConBilleteraMayorA nCreditos unBloque = filter (\ unUsuario -> billetera (impactarBloque unBloque unUsuario) > nCreditos )
 
---Funciones para comparar las billeteras de un grupo de usuarios
+--Funciones para comparar las billeteras de un grupo de usuarios tras un bloque
 
-type ComparacionDeCaudal = Plata -> Plata -> Bool
+type Impacto = Usuario -> Usuario
 
-crearComparacion :: ComparacionDeCaudal -> Bloque -> Usuario -> Usuario -> Usuario
-crearComparacion comparacion unBloque unUsuario otroUsuario | billetera (impactarBloque otroUsuario unBloque) `comparacion` billetera (impactarBloque unUsuario unBloque) = otroUsuario
-                                                            | otherwise = unUsuario
+type CriterioSobreUsuarios = Usuario -> Usuario -> Bool
 
-type ComparacionDeBilleteras = Bloque -> Usuario -> Usuario -> Usuario
+comparoResultadosYDevuelvoOriginal :: CriterioSobreUsuarios -> Impacto -> Usuario -> Usuario -> Usuario
+comparoResultadosYDevuelvoOriginal unCriterio unImpacto unUsuario otroUsuario
+  | unImpacto unUsuario `unCriterio` unImpacto otroUsuario = unUsuario
+  | otherwise = otroUsuario
 
-compararEntreUsuarios :: ComparacionDeBilleteras -> Bloque -> [Usuario] -> Usuario
-compararEntreUsuarios comparacion unBloque unosUsuarios = foldl (comparacion unBloque) (Usuario "Nadie tiene un mango" 0) unosUsuarios
+elMasRicoLuegoDe :: Impacto -> [Usuario] -> Usuario
+elMasRicoLuegoDe unImpacto usuarios = foldr1 (comparoResultadosYDevuelvoOriginal (>) unImpacto) usuarios
 
-comparoYMeQuedoConElOriginalDelMayor :: ComparacionDeBilleteras
-comparoYMeQuedoConElOriginalDelMayor = crearComparacion (>=)
-
-quienEsElMasAdineradoConBloque :: Bloque -> [Usuario] -> Usuario
-quienEsElMasAdineradoConBloque = compararEntreUsuarios comparoYMeQuedoConElOriginalDelMayor
-
-comparoYMeQuedoConElOriginalDelMenor :: ComparacionDeBilleteras
-comparoYMeQuedoConElOriginalDelMenor = crearComparacion (<=)
-
-quienEsElMenosAdineradoConBloque :: Bloque -> [Usuario] -> Usuario
-quienEsElMenosAdineradoConBloque = compararEntreUsuarios comparoYMeQuedoConElOriginalDelMenor
+elMasPobreLuegoDe :: Impacto -> [Usuario] -> Usuario
+elMasPobreLuegoDe unImpacto usuarios = foldr1 (comparoResultadosYDevuelvoOriginal (<) unImpacto) usuarios
 
 --BlockChain
 
@@ -214,25 +232,25 @@ blockchain = ( bloque2 : take 10 masBloque1 )
 
 --Funciones que permiten aplicar cadenas de bloques a usuarios
 
-elPeorDeLosBloques :: Usuario -> Blockchain -> Bloque
-elPeorDeLosBloques unUsuario unaBlockchain = peorBloque unUsuario unaBlockchain []
 
-peorBloque :: Usuario -> Blockchain -> Bloque -> Bloque
-peorBloque _ [] peorBloqueHastaAhora = peorBloqueHastaAhora
-peorBloque unUsuario ( cabeza : cola ) [] = peorBloque unUsuario cola cabeza
-peorBloque unUsuario ( cabeza : cola ) peorBloqueHastaAhora | billetera (impactarBloque unUsuario cabeza) < billetera (impactarBloque unUsuario peorBloqueHastaAhora) = peorBloque unUsuario cola cabeza
-                                                            | otherwise = peorBloque unUsuario cola peorBloqueHastaAhora
+comparoResultadosYDevuelvoBloqueOriginal :: CriterioSobreUsuarios -> Usuario -> Bloque -> Bloque -> Bloque
+comparoResultadosYDevuelvoBloqueOriginal unCriterio unUsuario unBloque otroBloque
+  | impactarBloque unBloque unUsuario `unCriterio` impactarBloque otroBloque unUsuario = unBloque
+  | otherwise = otroBloque
 
-aplicarBlockchain :: Usuario -> Blockchain -> Usuario
-aplicarBlockchain = foldl impactarBloque
+peorBloque :: Blockchain -> Usuario -> Bloque
+peorBloque unBlockChain unUsuario = foldr1 (comparoResultadosYDevuelvoBloqueOriginal (<) unUsuario) unBlockChain
+
+aplicarBlockchain :: Blockchain -> Usuario -> Usuario
+aplicarBlockchain = flip (foldr impactarBloque)
 
 type CantidadBloques = Int
 
-aplicarNBloques :: Usuario -> CantidadBloques -> Blockchain -> Usuario
-aplicarNBloques unUsuario cantidadBloques unBlockchain = aplicarBlockchain unUsuario (take cantidadBloques unBlockchain)
+aplicarNBloques :: Blockchain -> CantidadBloques -> Usuario -> Usuario
+aplicarNBloques unBlockchain cantidadBloques = aplicarBlockchain (take cantidadBloques unBlockchain)
 
-aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
-aplicarBlockchainAVariosUsuarios unosUsuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) unosUsuarios
+aplicarBlockchainAVariosUsuarios :: Blockchain -> [Usuario] -> [Usuario]
+aplicarBlockchainAVariosUsuarios unBlockchain = map (aplicarBlockchain unBlockchain)
 
 --BlockChain infinito
 
@@ -242,10 +260,17 @@ generarBlockChainInf bloqueSemilla = bloqueSemilla : generarBlockChainInf (bloqu
 blockInf = generarBlockChainInf bloque1
 
 cuantosBloquesSeNecesitanParaTener :: Plata -> Blockchain -> Usuario -> Int
-cuantosBloquesSeNecesitanParaTener tantaPlata (primerBloque:bloquesRestantes) unUsuario
+cuantosBloquesSeNecesitanParaTener tantaPlata ( primerBloque : bloquesRestantes ) unUsuario
   | billetera unUsuario >= tantaPlata = 0
-  | otherwise = 1 + cuantosBloquesSeNecesitanParaTener tantaPlata bloquesRestantes (impactarBloque unUsuario primerBloque)
+  | otherwise = 1 + cuantosBloquesSeNecesitanParaTener tantaPlata bloquesRestantes (impactarBloque primerBloque unUsuario)
 
 cuantosBloquesSeNecesitanParaTener _ [] _ = error "es imposible llegar a ese monton con este BlockChain"
+
+
+
+
+
+
+
 
 --Fin
