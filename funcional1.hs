@@ -136,16 +136,16 @@ testingSegundaEntrega = hspec $ do
     it "Impactar la transaccion 5 y luego la 2 a Pepe" $ (.) (impactar transaccionDos) (impactar transaccionCinco) pepe `shouldBe` pepe {billetera = 8}
 
   describe "Tests de bloque" $ do
-    it "Aplicar bloque 1 a Pepe" $ impactarBloque pepe bloque1 `shouldBe` pepe {billetera = 18}
+    it "Aplicar bloque 1 a Pepe" $ impactarBloque bloque1 pepe `shouldBe` pepe {billetera = 18}
     it "Solo Pepe tendra un saldo mayor a 10 luego de aplicar el bloque 1" $ quienesQuedanConBilleteraMayorA 10 bloque1 [pepe, lucho] `shouldBe` [pepe]
-    it "Pepe queda con mas dinero luego de aplicar el bloque 1" $ elMasRicoLuegoDe (flip impactarBloque bloque1) [pepe, lucho] `shouldBe` pepe
-    it "Lucho queda con menos dinero luego de aplicar el bloque 1" $ elMasPobreLuegoDe (flip impactarBloque bloque1) [pepe, lucho] `shouldBe` lucho
+    it "Pepe queda con mas dinero luego de aplicar el bloque 1" $ elMasRicoLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` pepe
+    it "Lucho queda con menos dinero luego de aplicar el bloque 1" $ elMasPobreLuegoDe (impactarBloque bloque1) [pepe, lucho] `shouldBe` lucho
 
   describe "Tests de block chain" $ do
-    it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (elPeorDeLosBloques pepe blockchain) `shouldBe` pepe {billetera = 18}
-    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ (billetera . aplicarBlockchain pepe) blockchain `shouldBe` 115
-    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ (billetera . aplicarNBloques pepe 3) blockchain `shouldBe` 51
-    it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios [lucho, pepe] blockchain) `shouldBe` 115
+    it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque (elPeorDeLosBloques blockchain pepe) pepe `shouldBe` pepe {billetera = 18}
+    it "Pepe luego de la block chain posee 115 creditos en su billetera" $ aplicarBlockchain blockchain pepe `shouldBe` pepe {billetera = 115}
+    it "Pepe queda con 51 creditos si solo aplicamos los 3 primeros bloques" $ aplicarNBloques blockchain 3 pepe `shouldBe` pepe {billetera = 51}
+    it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios blockchain [lucho, pepe]) `shouldBe` 115
 
   describe "Tests de block chain infinito" $ do
     it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques" $ cuantosBloquesSeNecesitanParaTener 10000 blockInf pepe `shouldBe` 11
@@ -153,7 +153,7 @@ testingSegundaEntrega = hspec $ do
 --Usuario luego de transacción
 
 impactar :: Transaccion -> Usuario -> Usuario
-impactar unaTransaccion unUsuario = nuevaBilletera (unaTransaccion unUsuario (billetera unUsuario) ) unUsuario
+impactar unaTransaccion unUsuario = nuevaBilletera (unaTransaccion unUsuario (billetera unUsuario)) unUsuario
 
 --Bloque
 
@@ -164,19 +164,21 @@ bloque1 = [transaccionUno, transaccionDos, transaccionDos, transaccionDos, trans
 
 --Usuario luego de una cadena de transacciones seguidas
 
-impactarBloque :: Usuario -> Bloque -> Usuario
-impactarBloque = foldl (flip impactar)
+impactarBloque :: Bloque -> Usuario -> Usuario
+impactarBloque = flip (foldr impactar)
 
 --Funciones para comparar la billetera de un grupo de usuarios con un monto fijo
 
 quienesQuedanConBilleteraMayorA :: Plata -> Bloque -> [Usuario] -> [Usuario]
-quienesQuedanConBilleteraMayorA nCreditos unBloque = filter (\ unUsuario -> billetera (impactarBloque unUsuario unBloque) > nCreditos )
+quienesQuedanConBilleteraMayorA nCreditos unBloque = filter (\ unUsuario -> billetera (impactarBloque unBloque unUsuario) > nCreditos )
 
 --Funciones para comparar las billeteras de un grupo de usuarios
 
 type Impacto = Usuario -> Usuario
 
-comparoResultadosYDevuelvoOriginal :: (Usuario -> Usuario -> Bool) -> Impacto -> Usuario -> Usuario -> Usuario
+type CriterioSobreUsuarios = Usuario -> Usuario -> Bool
+
+comparoResultadosYDevuelvoOriginal :: CriterioSobreUsuarios -> Impacto -> Usuario -> Usuario -> Usuario
 comparoResultadosYDevuelvoOriginal unCriterio unImpacto unUsuario otroUsuario
   | unImpacto unUsuario `unCriterio` unImpacto otroUsuario = unUsuario
   | otherwise = otroUsuario
@@ -186,7 +188,6 @@ elMasRicoLuegoDe unImpacto usuarios = foldr (comparoResultadosYDevuelvoOriginal 
 
 elMasPobreLuegoDe :: Impacto -> [Usuario] -> Usuario
 elMasPobreLuegoDe unImpacto usuarios = foldr (comparoResultadosYDevuelvoOriginal (<) unImpacto) (Usuario 1000000 "todos son millonarios") usuarios
-
 
 --BlockChain
 
@@ -203,25 +204,25 @@ blockchain = ( bloque2 : take 10 masBloque1 )
 
 --Funciones que permiten aplicar cadenas de bloques a usuarios
 
-elPeorDeLosBloques :: Usuario -> Blockchain -> Bloque
-elPeorDeLosBloques unUsuario unaBlockchain = peorBloque unUsuario unaBlockchain []
+elPeorDeLosBloques :: Blockchain -> Usuario -> Bloque
+elPeorDeLosBloques unaBlockchain unUsuario = peorBloque unaBlockchain unUsuario []
 
-peorBloque :: Usuario -> Blockchain -> Bloque -> Bloque
-peorBloque _ [] peorBloqueHastaAhora = peorBloqueHastaAhora
-peorBloque unUsuario ( cabeza : cola ) [] = peorBloque unUsuario cola cabeza
-peorBloque unUsuario ( cabeza : cola ) peorBloqueHastaAhora | billetera (impactarBloque unUsuario cabeza) < billetera (impactarBloque unUsuario peorBloqueHastaAhora) = peorBloque unUsuario cola cabeza
-                                                            | otherwise = peorBloque unUsuario cola peorBloqueHastaAhora
+peorBloque :: Blockchain -> Usuario -> Bloque -> Bloque
+peorBloque [] _ peorBloqueHastaAhora = peorBloqueHastaAhora
+peorBloque ( cabeza : cola ) unUsuario [] = peorBloque cola unUsuario cabeza
+peorBloque ( cabeza : cola ) unUsuario peorBloqueHastaAhora | billetera (impactarBloque cabeza unUsuario) < billetera (impactarBloque peorBloqueHastaAhora unUsuario) = peorBloque cola unUsuario cabeza
+                                                            | otherwise = peorBloque cola unUsuario peorBloqueHastaAhora
 
-aplicarBlockchain :: Usuario -> Blockchain -> Usuario
-aplicarBlockchain = foldl impactarBloque
+aplicarBlockchain :: Blockchain -> Usuario -> Usuario
+aplicarBlockchain = flip (foldr impactarBloque)
 
 type CantidadBloques = Int
 
-aplicarNBloques :: Usuario -> CantidadBloques -> Blockchain -> Usuario
-aplicarNBloques unUsuario cantidadBloques unBlockchain = aplicarBlockchain unUsuario (take cantidadBloques unBlockchain)
+aplicarNBloques :: Blockchain -> CantidadBloques -> Usuario -> Usuario
+aplicarNBloques unBlockchain cantidadBloques = aplicarBlockchain (take cantidadBloques unBlockchain)
 
-aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
-aplicarBlockchainAVariosUsuarios unosUsuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) unosUsuarios
+aplicarBlockchainAVariosUsuarios :: Blockchain -> [Usuario] -> [Usuario]
+aplicarBlockchainAVariosUsuarios unBlockchain = map (aplicarBlockchain unBlockchain)
 
 --BlockChain infinito
 
@@ -231,9 +232,9 @@ generarBlockChainInf bloqueSemilla = bloqueSemilla : generarBlockChainInf (bloqu
 blockInf = generarBlockChainInf bloque1
 
 cuantosBloquesSeNecesitanParaTener :: Plata -> Blockchain -> Usuario -> Int
-cuantosBloquesSeNecesitanParaTener tantaPlata (primerBloque:bloquesRestantes) unUsuario
+cuantosBloquesSeNecesitanParaTener tantaPlata ( primerBloque : bloquesRestantes ) unUsuario
   | billetera unUsuario >= tantaPlata = 0
-  | otherwise = 1 + cuantosBloquesSeNecesitanParaTener tantaPlata bloquesRestantes (impactarBloque unUsuario primerBloque)
+  | otherwise = 1 + cuantosBloquesSeNecesitanParaTener tantaPlata bloquesRestantes (impactarBloque primerBloque unUsuario)
 
 cuantosBloquesSeNecesitanParaTener _ [] _ = error "es imposible llegar a ese monton con este BlockChain"
 
