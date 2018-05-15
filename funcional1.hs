@@ -38,9 +38,9 @@ quedaIgual = id
 type Nombre = String
 
 data Usuario = Usuario {
-      nombre :: Nombre,
-      billetera :: Billetera
-} deriving (Show, Eq)
+      billetera :: Billetera,
+      nombre :: Nombre
+} deriving (Show, Eq, Ord)
 
 nuevaBilletera :: Plata -> Usuario -> Usuario
 nuevaBilletera nuevoMonto unUsuario = unUsuario {billetera = nuevoMonto}
@@ -138,8 +138,8 @@ testingSegundaEntrega = hspec $ do
   describe "Tests de bloque" $ do
     it "Aplicar bloque 1 a Pepe" $ impactarBloque pepe bloque1 `shouldBe` pepe {billetera = 18}
     it "Solo Pepe tendra un saldo mayor a 10 luego de aplicar el bloque 1" $ quienesQuedanConBilleteraMayorA 10 bloque1 [pepe, lucho] `shouldBe` [pepe]
-    it "Pepe queda con mas dinero luego de aplicar el bloque 1" $ quienEsElMasAdineradoConBloque bloque1 [pepe, lucho] `shouldBe` pepe
-    it "Lucho queda con menos dinero luego de aplicar el bloque 1" $ quienEsElMenosAdineradoConBloque bloque1 [pepe, lucho] `shouldBe` lucho
+    it "Pepe queda con mas dinero luego de aplicar el bloque 1" $ elMasRicoLuegoDe (flip impactarBloque bloque1) [pepe, lucho] `shouldBe` pepe
+    it "Lucho queda con menos dinero luego de aplicar el bloque 1" $ elMasPobreLuegoDe (flip impactarBloque bloque1) [pepe, lucho] `shouldBe` lucho
 
   describe "Tests de block chain" $ do
     it "Para Pepe el peor bloque de la block chain fue el bloque 1" $ impactarBloque pepe (elPeorDeLosBloques pepe blockchain) `shouldBe` pepe {billetera = 18}
@@ -170,34 +170,23 @@ impactarBloque = foldl (flip impactar)
 --Funciones para comparar la billetera de un grupo de usuarios con un monto fijo
 
 quienesQuedanConBilleteraMayorA :: Plata -> Bloque -> [Usuario] -> [Usuario]
-quienesQuedanConBilleteraMayorA _ _ [] = []
-quienesQuedanConBilleteraMayorA monto unBloque ( cabeza : cola ) | billetera (impactarBloque cabeza unBloque) >= monto = ( cabeza : quienesQuedanConBilleteraMayorA monto unBloque cola )
-                                                                 | otherwise = quienesQuedanConBilleteraMayorA monto unBloque cola
+quienesQuedanConBilleteraMayorA nCreditos unBloque = filter (\ unUsuario -> billetera (impactarBloque unUsuario unBloque) > nCreditos )
 
 --Funciones para comparar las billeteras de un grupo de usuarios
 
-type ComparacionDeCaudal = Plata -> Plata -> Bool
+type Impacto = Usuario -> Usuario
 
-crearComparacion :: ComparacionDeCaudal -> Bloque -> Usuario -> Usuario -> Usuario
-crearComparacion comparacion unBloque unUsuario otroUsuario | billetera (impactarBloque otroUsuario unBloque) `comparacion` billetera (impactarBloque unUsuario unBloque) = otroUsuario
-                                                            | otherwise = unUsuario
+comparoResultadosYDevuelvoOriginal :: (Usuario -> Usuario -> Bool) -> Impacto -> Usuario -> Usuario -> Usuario
+comparoResultadosYDevuelvoOriginal unCriterio unImpacto unUsuario otroUsuario
+  | unImpacto unUsuario `unCriterio` unImpacto otroUsuario = unUsuario
+  | otherwise = otroUsuario
 
-type ComparacionDeBilleteras = Bloque -> Usuario -> Usuario -> Usuario
+elMasRicoLuegoDe :: Impacto -> [Usuario] -> Usuario
+elMasRicoLuegoDe unImpacto usuarios = foldr (comparoResultadosYDevuelvoOriginal (>) unImpacto) (Usuario 0 "nadie tiene un mango") usuarios
 
-compararEntreUsuarios :: ComparacionDeBilleteras -> Bloque -> [Usuario] -> Usuario
-compararEntreUsuarios comparacion unBloque unosUsuarios = foldl (comparacion unBloque) (Usuario "Nadie tiene un mango" 0) unosUsuarios
+elMasPobreLuegoDe :: Impacto -> [Usuario] -> Usuario
+elMasPobreLuegoDe unImpacto usuarios = foldr (comparoResultadosYDevuelvoOriginal (<) unImpacto) (Usuario 0 "nadie tiene un mango") usuarios
 
-comparoYMeQuedoConElOriginalDelMayor :: ComparacionDeBilleteras
-comparoYMeQuedoConElOriginalDelMayor = crearComparacion (>=)
-
-quienEsElMasAdineradoConBloque :: Bloque -> [Usuario] -> Usuario
-quienEsElMasAdineradoConBloque = compararEntreUsuarios comparoYMeQuedoConElOriginalDelMayor
-
-comparoYMeQuedoConElOriginalDelMenor :: ComparacionDeBilleteras
-comparoYMeQuedoConElOriginalDelMenor = crearComparacion (<=)
-
-quienEsElMenosAdineradoConBloque :: Bloque -> [Usuario] -> Usuario
-quienEsElMenosAdineradoConBloque = compararEntreUsuarios comparoYMeQuedoConElOriginalDelMenor
 
 --BlockChain
 
