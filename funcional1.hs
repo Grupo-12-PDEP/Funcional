@@ -148,7 +148,7 @@ testingSegundaEntrega = hspec $ do
     it "El saldo total entre Lucho y Pepe luego de un block chain es 115" $ (sum . map billetera) (aplicarBlockchainAVariosUsuarios [lucho, pepe] blockchain) `shouldBe` 115
 
   describe "Tests de block chain infinito" $ do
-    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques" $ aplicarHasta10000 pepe blockchainInfinita `shouldBe` 11
+    it "Pepe pasa los 10000 creditos luego de los 11 primeros bloques" $ cuantosBloquesSeNecesitanParaTener 10000 blockInf pepe `shouldBe` 11
 
 --Usuario luego de transacción
 
@@ -234,21 +234,18 @@ aplicarNBloques unUsuario cantidadBloques unBlockchain = aplicarBlockchain unUsu
 aplicarBlockchainAVariosUsuarios :: [Usuario] -> Blockchain -> [Usuario]
 aplicarBlockchainAVariosUsuarios unosUsuarios unBlockchain = map (`aplicarBlockchain` unBlockchain) unosUsuarios
 
---BlockChain infinita y su respectiva funcion que permite saber cuantos bloques fueron necesarios aplicar para que un usuario alcance cierta cifra de creditos
+--BlockChain infinito
 
-blockchainInfinita :: Blockchain
-blockchainInfinita = potenciarCadena 0
+generarBlockChainInf :: Bloque -> Blockchain
+generarBlockChainInf bloqueSemilla = bloqueSemilla : generarBlockChainInf (bloqueSemilla ++ bloqueSemilla)
 
-type Semilla = Int
+blockInf = generarBlockChainInf bloque1
 
-potenciarCadena :: Semilla -> Blockchain
-potenciarCadena n = ( concat (take (2 ^ n) masBloque1) : potenciarCadena (n + 1) )
+cuantosBloquesSeNecesitanParaTener :: Plata -> Blockchain -> Usuario -> Int
+cuantosBloquesSeNecesitanParaTener tantaPlata (primerBloque:bloquesRestantes) unUsuario
+  | billetera unUsuario >= tantaPlata = 0
+  | otherwise = 1 + cuantosBloquesSeNecesitanParaTener tantaPlata bloquesRestantes (impactarBloque unUsuario primerBloque)
 
-hasta10000 :: Usuario -> Blockchain -> Semilla -> CantidadBloques
-hasta10000 unUsuario ( cabeza : cola ) cantidadBloques | billetera unUsuario >= 10000 = cantidadBloques
-                                                       | otherwise = hasta10000 (impactarBloque unUsuario cabeza) cola (cantidadBloques + 1)
-
-aplicarHasta10000 :: Usuario -> Blockchain -> CantidadBloques
-aplicarHasta10000 unUsuario unaBlockchain = hasta10000 unUsuario unaBlockchain 0
+cuantosBloquesSeNecesitanParaTener _ [] _ = error "es imposible llegar a ese monton con este BlockChain"
 
 --Fin
