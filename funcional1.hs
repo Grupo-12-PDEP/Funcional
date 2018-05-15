@@ -185,7 +185,7 @@ elMasRicoLuegoDe :: Impacto -> [Usuario] -> Usuario
 elMasRicoLuegoDe unImpacto usuarios = foldr (comparoResultadosYDevuelvoOriginal (>) unImpacto) (Usuario 0 "nadie tiene un mango") usuarios
 
 elMasPobreLuegoDe :: Impacto -> [Usuario] -> Usuario
-elMasPobreLuegoDe unImpacto usuarios = foldr (comparoResultadosYDevuelvoOriginal (<) unImpacto) (Usuario 0 "nadie tiene un mango") usuarios
+elMasPobreLuegoDe unImpacto usuarios = foldr (comparoResultadosYDevuelvoOriginal (<) unImpacto) (Usuario 1000000 "todos son millonarios") usuarios
 
 
 --BlockChain
